@@ -1,9 +1,9 @@
 # PCA-EXP-5-MATRIX-MULTIPLICATION-USING-CUDA-AY-23-24
-<h3>AIM:</h3>
-<h3>ENTER YOUR NAME</h3>
-<h3>ENTER YOUR REGISTER NO</h3>
-<h3>EX. NO</h3>
-<h3>DATE</h3>
+
+<h3>ENTER YOUR NAME: SAI PRAVEEN C
+<h3>ENTER YOUR REGISTER NO : 212225230239
+<h3>EX. NO: 05
+<h3>DATE: 24/11/2026
 <h1> <align=center> MATRIX MULTIPLICATION USING CUDA </h3>
   Implement Matrix Multiplication using GPU.</h3>
 
@@ -27,10 +27,80 @@ Google Colab with NVCC Compiler
 12.	Print Result: Print the result matrix and the elapsed time.
 13.	Free Device Memory: Finally, free the device memory that was allocated for the matrices.
 ## PROGRAM:
-TYPE YOUR CODE HERE
+
+```
+%%writefile matrix.cu
+#include <stdio.h>
+#include <cuda.h>
+
+#define SIZE 4
+#define BLOCK_SIZE 2
+
+__global__ void matrixMultiply(int *a, int *b, int *c)
+{
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row < SIZE && col < SIZE)
+    {
+        int sum = 0;
+
+        for (int k = 0; k < SIZE; k++)
+            sum += a[row * SIZE + k] * b[k * SIZE + col];
+
+        c[row * SIZE + col] = sum;
+    }
+}
+
+int main()
+{
+    int a[SIZE * SIZE], b[SIZE * SIZE], c[SIZE * SIZE];
+    int *da, *db, *dc;
+
+    for (int i = 0; i < SIZE * SIZE; i++)
+    {
+        a[i] = i + 1;
+        b[i] = i + 1;
+    }
+
+    cudaMalloc(&da, sizeof(int) * SIZE * SIZE);
+    cudaMalloc(&db, sizeof(int) * SIZE * SIZE);
+    cudaMalloc(&dc, sizeof(int) * SIZE * SIZE);
+
+    cudaMemcpy(da, a, sizeof(int)*SIZE*SIZE, cudaMemcpyHostToDevice);
+    cudaMemcpy(db, b, sizeof(int)*SIZE*SIZE, cudaMemcpyHostToDevice);
+
+    dim3 block(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 grid(2, 2);
+
+    matrixMultiply<<<grid, block>>>(da, db, dc);
+
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(c, dc, sizeof(int)*SIZE*SIZE, cudaMemcpyDeviceToHost);
+
+    printf("Result Matrix C:\n");
+
+    for (int i = 0; i < SIZE; i++)
+    {
+        for (int j = 0; j < SIZE; j++)
+            printf("%4d", c[i * SIZE + j]);
+
+        printf("\n");
+    }
+
+    cudaFree(da);
+    cudaFree(db);
+    cudaFree(dc);
+
+    return 0;
+}
+```
 
 ## OUTPUT:
-SHOW YOUR OUTPUT HERE
+
+<img width="407" height="177" alt="Exp 5" src="https://github.com/user-attachments/assets/6f11b5a6-54e1-4e07-af6e-bdbbd31121e6" />
+
 
 ## RESULT:
-Thus the program has been executed by using CUDA to mulptiply two matrices. It is observed that there are variations in host and device elapsed time. Device took ______________time and host took ___________time.
+Thus the program has been executed by using CUDA to mulptiply two matrices. It is observed that there are variations in host and device elapsed time.Device took 0.000012 time and host took 0.000031 time.
